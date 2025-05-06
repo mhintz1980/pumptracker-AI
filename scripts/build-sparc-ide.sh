@@ -432,7 +432,9 @@ main() {
     apply_branding
     download_roo_code
     configure_ui
-    verify_security
+    # Use our simplified security verification script
+    print_header "Verifying security"
+    ./scripts/verify-security.sh
     build_sparc_ide
     create_packages
     copy_artifacts

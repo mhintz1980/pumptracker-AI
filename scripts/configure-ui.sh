@@ -24,6 +24,8 @@ print_success() {
 
 print_error() {
     echo -e "\e[1;31m[ERROR]\e[0m $1"
+}
+
 # Check if VSCodium directory exists and validate its integrity
 check_vscodium() {
     print_info "Checking VSCodium directory..."
@@ -53,8 +55,6 @@ check_vscodium() {
     fi
     
     print_success "VSCodium directory found and validated."
-}
-    print_success "VSCodium directory found."
 }
 
 # Configure AI-centric layout

@@ -122,6 +122,23 @@ run_branding_tests() {
     fi
 }
 
+# Run packaging tests
+run_packaging_tests() {
+    print_header "Running Packaging Tests"
+    
+    # Run package-sparc-ide.sh tests
+    print_info "Running package-sparc-ide.sh tests..."
+    if "$SCRIPT_DIR/packaging/test_package_sparc_ide.sh" > "$REPORT_DIR/test_package_sparc_ide_$TIMESTAMP.log" 2>&1; then
+        print_success "package-sparc-ide.sh tests passed."
+        echo "✅ package-sparc-ide.sh tests: PASSED" >> "$SUMMARY_FILE"
+        PASSED_TESTS=$((PASSED_TESTS + 1))
+    else
+        print_error "package-sparc-ide.sh tests failed."
+        echo "❌ package-sparc-ide.sh tests: FAILED" >> "$SUMMARY_FILE"
+        FAILED_TESTS=$((FAILED_TESTS + 1))
+    fi
+}
+
 # Generate HTML report
 generate_html_report() {
     print_header "Generating HTML Report"
@@ -175,6 +192,9 @@ EOL
     # Add branding test results
     echo "<tr><td>apply-branding.sh</td><td class=\"$(grep -q "apply-branding.sh tests: PASSED" "$SUMMARY_FILE" && echo "success" || echo "failure")\">$(grep -q "apply-branding.sh tests: PASSED" "$SUMMARY_FILE" && echo "Passed" || echo "Failed")</td><td><a href=\"apply_branding_test_$TIMESTAMP.log\">View Log</a></td></tr>" >> "$HTML_REPORT"
     
+    # Add packaging test results
+    echo "<tr><td>package-sparc-ide.sh</td><td class=\"$(grep -q "package-sparc-ide.sh tests: PASSED" "$SUMMARY_FILE" && echo "success" || echo "failure")\">$(grep -q "package-sparc-ide.sh tests: PASSED" "$SUMMARY_FILE" && echo "Passed" || echo "Failed")</td><td><a href=\"test_package_sparc_ide_$TIMESTAMP.log\">View Log</a></td></tr>" >> "$HTML_REPORT"
+    
     # Close HTML tags
     cat >> "$HTML_REPORT" << EOL
     </table>
@@ -204,6 +224,7 @@ main() {
     run_roo_code_tests
     run_ui_config_tests
     run_branding_tests
+    run_packaging_tests
     
     # Generate HTML report
     generate_html_report
