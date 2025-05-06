@@ -1,201 +1,178 @@
-# SPARC IDE: The AI-Native Development Environment  
-**Build your own intelligent IDE powered by Roo Code and the SPARC methodology**  
+# SPARC IDE
 
-SPARC IDE is a customizable, open-source distribution of VSCode built for agentic software development. Inspired by tools like Windsurf and Cursor, it integrates Roo Code to enable prompt-driven development, autonomous agent workflows, and AI-native collaboration.
+SPARC IDE is a customizable, open-source distribution of VSCode built specifically for agentic software development. It integrates Roo Code to enable prompt-driven development, autonomous agent workflows, and AI-native collaboration.
 
-This project is designed for developers who want total control over their toolchain—whether you're coding, testing, or deploying intelligent systems.
+## Features
 
----
+- **VSCodium Base**: Fork and customize VSCodium as the foundation
+  - Support for Linux, macOS, and Windows platforms
+  - Custom branding and UI elements
+  - MIT-licensed and telemetry-free
 
-## ✨ Key Features
+- **Roo Code Integration**:
+  - Pre-installed Roo Code extension
+  - Default configuration for multiple AI models
+  - Custom keybindings for AI interactions
+  - Support for custom AI modes and workflows
 
-- 🧠 Built-in support for **Roo Code**, enabling multi-model AI assistance  
-- 🔁 Agentic workflows aligned with the **SPARC methodology** (Specification, Pseudocode, Architecture, Refinement, Completion)  
-- ⚡ Pre-optimized for **OpenRouter**, **Claude**, **GPT-4**, and **Gemini**  
-- 🎨 Fully customizable UI/UX for AI-native coding sessions  
-- 📦 Cross-platform builds (Linux, macOS, Windows)  
-- 🔐 MIT-licensed and telemetry-free via VSCodium  
+- **SPARC Methodology Support**:
+  - Dedicated UI panels for each SPARC phase
+  - Templates and workflows for Specification, Pseudocode, Architecture, Refinement, and Completion
+  - Progress tracking across SPARC phases
+  - Phase-specific AI prompts and tools
 
----
+- **Multi-Model AI Support**:
+  - OpenRouter integration
+  - Claude integration
+  - GPT-4 integration
+  - Gemini integration
+  - Custom LLM endpoint configuration
 
-## 🚀 Getting Started  
+- **AI-Centric Layout**:
+  - Left panel: File Explorer + Roo Code
+  - Bottom panel: Terminal + Action Logs
+  - Right panel: Extensions (GitLens, Prettier)
+  - Custom themes (Dracula Pro, Material Theme)
 
-### 1. Clone and Build VSCodium
+## System Requirements
 
-```bash
-git clone https://github.com/VSCodium/vscodium.git
-cd vscodium
-yarn && yarn gulp vscode-linux-x64
-````
+- **Operating System**:
+  - Linux: Ubuntu 20.04+, Debian 11+
+  - Windows: Windows 10+
+  - macOS: macOS 11+
+- **Hardware**:
+  - CPU: 4+ cores
+  - RAM: 8GB+
+  - Storage: 1GB+ free space
 
-Refer to [VSCodium Docs](https://vscodium.com) for Windows/macOS builds.
+## Building from Source
 
-### 2. Modify Branding
+### Prerequisites
 
-Edit `product.json`:
+- Node.js 16+
+- Yarn 1.22+
+- Git
+- Platform-specific dependencies:
+  - Linux: `build-essential`, `libx11-dev`, `libxkbfile-dev`, `libsecret-1-dev`
+  - Windows: Visual Studio Build Tools
+  - macOS: Xcode Command Line Tools
 
-```json
-{
-  "nameShort": "SPARC IDE",
-  "nameLong": "SPARC IDE: AI-Powered Development Environment",
-  "extensionsGallery": {
-    "serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
-    "cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
-    "itemUrl": "https://marketplace.visualstudio.com/items"
-  }
-}
-```
+### Build Instructions
 
----
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/sparc-ide/sparc-ide.git
+   cd sparc-ide
+   ```
 
-## 🤖 Roo Code Integration
+2. Make the build script executable:
+   ```bash
+   chmod +x scripts/build-sparc-ide.sh
+   ```
 
-### 1. Pre-install Roo Code
+3. Run the build script:
+   ```bash
+   # Auto-detect platform
+   ./scripts/build-sparc-ide.sh
+   
+   # Or specify platform
+   ./scripts/build-sparc-ide.sh --platform linux
+   ./scripts/build-sparc-ide.sh --platform windows
+   ./scripts/build-sparc-ide.sh --platform macos
+   ```
 
-```bash
-mkdir -p extensions
-curl -L https://marketplace.visualstudio.com/_apis/public/gallery/publishers/RooVeterinaryInc/vsextensions/roo-cline/3.2.0/vspackage > extensions/roo-code.vsix
-```
+4. The build artifacts will be available in the `dist/` directory.
 
-### 2. Configure Default AI Settings
+## Installation
 
-Add to `settings.json`:
+### Linux
 
-```json
-"roo-code.apiKey": "YOUR_OPENROUTER_KEY",
-"roo-code.defaultModel": "sonnet",
-"roo-code.customModes": {
-  "QA Engineer": {
-    "prompt": "You are a QA engineer... detect edge cases and write tests",
-    "tools": ["readFile", "writeFile", "runCommand"]
-  }
-}
-```
+1. Download the appropriate package for your distribution:
+   - DEB package: `sparc-ide_1.0.0_amd64.deb`
+   - RPM package: `sparc-ide-1.0.0.x86_64.rpm`
 
----
+2. Install the package:
+   - DEB: `sudo dpkg -i sparc-ide_1.0.0_amd64.deb`
+   - RPM: `sudo rpm -i sparc-ide-1.0.0.x86_64.rpm`
 
-## 🧩 AI-Centric UI Layout
+3. Launch SPARC IDE from your applications menu or run `sparc-ide` in the terminal.
 
-### Recommended Themes
+### Windows
 
-* Dracula Pro
-* Material Theme
+1. Download the Windows installer: `sparc-ide-setup-1.0.0.exe`
+2. Run the installer and follow the on-screen instructions.
+3. Launch SPARC IDE from the Start menu.
 
-### Suggested Keybindings
+### macOS
 
-```json
-{
-  "key": "ctrl+shift+a",
-  "command": "roo-code.chat",
-  "when": "editorTextFocus"
-}
-```
+1. Download the macOS package: `sparc-ide-1.0.0.dmg`
+2. Open the DMG file and drag SPARC IDE to the Applications folder.
+3. Launch SPARC IDE from the Applications folder.
 
-### Panel Setup
+## Configuration
 
-* Left: File Explorer + Roo Code
-* Bottom: Terminal + Action Logs
-* Right: Extensions (GitLens, Prettier)
+### API Key Configuration
 
----
+To use AI features, you need to configure API keys:
 
-## 🛠️ Building & Packaging
+1. Open SPARC IDE.
+2. Go to Settings (File > Preferences > Settings).
+3. Search for "roo-code.apiKey".
+4. Enter your OpenRouter API key.
+5. Optionally, configure keys for other AI providers.
 
-### Build Commands
+### Custom AI Modes
 
-```bash
-yarn gulp vscode-linux-x64
-yarn gulp vscode-win32-x64
-yarn gulp vscode-darwin-x64
-```
+SPARC IDE provides custom AI modes for specific tasks:
 
-### Packaging
+- **QA Engineer**: Detect edge cases and write tests
+- **Architect**: Design scalable and maintainable systems
+- **Code Reviewer**: Identify issues and suggest improvements
+- **Documentation Writer**: Create clear and comprehensive documentation
 
-* Linux:
+You can create your own custom modes in the settings.
 
-  ```bash
-  sudo yarn run gulp vscode-linux-x64-build-deb
-  ```
+## SPARC Methodology
 
-* Windows: Use NSIS / WiX Toolset
+SPARC IDE implements the SPARC methodology with five phases:
 
-* macOS: Use `.dmg` bundler with custom icon
+1. **Specification**: Define detailed requirements and acceptance criteria
+2. **Pseudocode**: Create implementation pseudocode and logic flow
+3. **Architecture**: Design system architecture and component interactions
+4. **Refinement**: Implement iterative improvements and testing
+5. **Completion**: Finalize documentation, deployment, and maintenance
 
----
+To switch between phases:
 
-## ✅ Testing
+1. Click on the SPARC icon in the activity bar.
+2. Select the desired phase from the SPARC panel.
+3. Use templates and AI prompts specific to the current phase.
 
-* Validate Roo Code chat, tools, and prompt injection
-* Test multi-model switching (GPT-4, Claude, Gemini)
-* Run compatibility checks for GitLens, ESLint, Prettier
+## Keyboard Shortcuts
 
----
+- `Ctrl+Shift+A`: Open AI chat
+- `Ctrl+Shift+I`: Insert AI-generated code
+- `Ctrl+Shift+E`: Explain selected code
+- `Ctrl+Shift+R`: Refactor selected code
+- `Ctrl+Shift+D`: Document selected code
+- `Ctrl+Shift+T`: Generate tests for selected code
+- `Ctrl+Alt+1-5`: Switch between SPARC phases
+- `Ctrl+Alt+T`: Create template for current SPARC phase
+- `Ctrl+Alt+A`: Create artifact for current SPARC phase
+- `Ctrl+Alt+P`: Show SPARC progress
+- `Ctrl+Shift+1-4`: Switch between AI models
+- `Ctrl+Shift+Q/S/C/W`: Switch between AI modes
 
-## 📦 Publish & Distribute
+## Contributing
 
-### GitHub Setup
+We welcome contributions to SPARC IDE! Please see [CONTRIBUTING.md](docs/CONTRIBUTING.md) for details on how to contribute.
 
-1. Fork and push SPARC IDE codebase
-2. Document install and build instructions
+## License
 
-### GitHub Actions CI
+SPARC IDE is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
-```yaml
-name: Build SPARC IDE  
-on: [push]  
-jobs:  
-  build:  
-    runs-on: ubuntu-latest  
-    steps:  
-      - uses: actions/checkout@v4  
-      - name: Install dependencies  
-        run: yarn install  
-      - name: Build Linux  
-        run: yarn gulp vscode-linux-x64  
-      - name: Upload artifacts  
-        uses: actions/upload-artifact@v3  
-        with:  
-          name: SPARC-IDE-linux  
-          path: out/vscode-linux-x64  
-```
+## Acknowledgements
 
----
-
-## 🔧 Advanced Features
-
-* **Custom LLM endpoints** via Hugging Face or OpenRouter
-* **Multi-agent workflows** for parallel reasoning
-* **Browser automation** for end-to-end testing
-* **Minimal mode** for distraction-free prompt engineering
-
----
-
-## 📚 Resources & Docs
-
-* [Roo Code on GitHub](https://github.com/qpd-v/Roo-Code)
-* [VSCodium](https://vscodium.com)
-* [SPARC Methodology](https://github.com/ruvnet/sparc)
-* [OpenRouter](https://openrouter.ai)
-
----
-
-## 🤝 Contributing
-
-We welcome community contributions and extensions! Fork the repo, make your improvements, and open a PR.
-
----
-
-## 🧠 Why SPARC IDE?
-
-SPARC IDE doesn’t just integrate AI—it evolves with it. You’re not just coding. You’re collaborating with intelligent agents, accelerating the build-test-reflect cycle, and optimizing your own workflows. It’s the first IDE designed for recursive, autonomous software development, entirely on your terms.
-
----
-
-## 📢 License
-
-MIT License — free to use, modify, and distribute.
-
----
-
-Built by [rUv](https://github.com/ruvnet) • Powered by Roo Code • Made for agentic engineers.
-  
+- [VSCodium](https://github.com/VSCodium/vscodium) for providing the base for SPARC IDE
+- [Roo Code](https://github.com/RooVeterinaryInc/roo-cline) for the AI integration
+- All the open-source projects that make SPARC IDE possible
