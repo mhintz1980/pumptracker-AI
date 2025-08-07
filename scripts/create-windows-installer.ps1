@@ -528,6 +528,46 @@ function Create-WindowsInstaller {
     
     Set-Location $VscodiumDir
     
+    # Copy NSIS installer configuration
+    $InstallerConfigPath = Join-Path $RootDir "scripts\installer-config.nsh"
+    $VscodiumBuildDir = Join-Path $VscodiumDir "build\win32-x64"
+    
+    if (Test-Path $InstallerConfigPath) {
+        Write-ColoredOutput "Copying NSIS installer configuration..." "INFO"
+        Create-DirectoryIfNotExists $VscodiumBuildDir
+        Copy-Item -Path $InstallerConfigPath -Destination $VscodiumBuildDir -Force
+        Write-ColoredOutput "NSIS configuration copied successfully" "SUCCESS"
+    } else {
+        Write-ColoredOutput "NSIS installer configuration not found at $InstallerConfigPath" "WARNING"
+    }
+    
+    # Copy Windows branding assets
+    $WindowsBrandingDir = Join-Path $RootDir "branding\windows"
+    if (Test-Path $WindowsBrandingDir) {
+        Write-ColoredOutput "Copying Windows branding assets..." "INFO"
+        
+        # Copy branding files to build directory
+        $BrandingFiles = @(
+            "sparc-ide-installer-banner.bmp",
+            "sparc-ide-installer-dialog.bmp",
+            "sparc-ide-installer.ico"
+        )
+        
+        foreach ($BrandingFile in $BrandingFiles) {
+            $SourcePath = Join-Path $WindowsBrandingDir $BrandingFile
+            $DestPath = Join-Path $VscodiumBuildDir $BrandingFile
+            
+            if (Test-Path $SourcePath) {
+                Copy-Item -Path $SourcePath -Destination $DestPath -Force
+                Write-ColoredOutput "Copied branding asset: $BrandingFile" "SUCCESS"
+            } else {
+                Write-ColoredOutput "Branding asset not found: $BrandingFile" "WARNING"
+            }
+        }
+    } else {
+        Write-ColoredOutput "Windows branding directory not found at $WindowsBrandingDir" "WARNING"
+    }
+    
     # Create NSIS installer
     Write-ColoredOutput "Creating NSIS installer..." "INFO"
     yarn gulp vscode-win32-x64-build-nsis
