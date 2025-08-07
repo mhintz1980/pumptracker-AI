@@ -150,12 +150,33 @@ function Check-Prerequisites {
     }
     
     # Check for Visual Studio Build Tools
-    if (-not (Test-CommandExists "msbuild")) {
+    $MSBuildPaths = @(
+        "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe",
+        "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe",
+        "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe",
+        "C:\Program Files\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe"
+    )
+    
+    $MSBuildFound = $false
+    foreach ($MSBuildPath in $MSBuildPaths) {
+        if (Test-Path $MSBuildPath) {
+            Write-ColoredOutput "Visual Studio Build Tools found at: $MSBuildPath" "SUCCESS"
+            # Add MSBuild to PATH for this session
+            $env:PATH = "$(Split-Path $MSBuildPath);$env:PATH"
+            $MSBuildFound = $true
+            break
+        }
+    }
+    
+    if (-not $MSBuildFound -and -not (Test-CommandExists "msbuild")) {
         Write-ColoredOutput "Visual Studio Build Tools are not installed. Please install Visual Studio Build Tools and try again." "ERROR"
         Write-ColoredOutput "Download Visual Studio Build Tools from https://visualstudio.microsoft.com/downloads/" "INFO"
         exit 1
     }
-    Write-ColoredOutput "Visual Studio Build Tools are installed" "SUCCESS"
+    
+    if (-not $MSBuildFound) {
+        Write-ColoredOutput "Visual Studio Build Tools are installed (msbuild found in PATH)" "SUCCESS"
+    }
     
     Write-ColoredOutput "All prerequisites are met" "SUCCESS"
 }
@@ -239,49 +260,68 @@ function Clone-Vscodium {
         Write-ColoredOutput "VSCodium directory already exists. Updating..." "INFO"
         Set-Location $VscodiumDir
         
+        # Temporarily disable strict error handling for git commands
+        $PreviousErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        
         # Clean up any existing build branch
-        git checkout main -f 2>$null
-        git branch -D "build-$VscodiumVersion" 2>$null
+        git checkout master -f 2>$null | Out-Null
+        git branch -D "build-$VscodiumVersion" 2>$null | Out-Null
         
         # Fetch latest tags and branches
-        git fetch --all --tags
+        git fetch --all --tags 2>$null | Out-Null
         
         # Check if the tag exists
         $TagExists = git tag -l $VscodiumVersion
         if ($TagExists) {
             Write-ColoredOutput "Checking out tag $VscodiumVersion..." "INFO"
-            git checkout -b "build-$VscodiumVersion" $VscodiumVersion
+            git checkout -b "build-$VscodiumVersion" $VscodiumVersion 2>$null | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                Write-ColoredOutput "Failed to checkout tag, using master branch..." "WARNING"
+                git checkout -b "build-$VscodiumVersion" master 2>$null | Out-Null
+            }
         } else {
-            Write-ColoredOutput "Tag $VscodiumVersion not found. Using main branch..." "WARNING"
-            git checkout -b "build-$VscodiumVersion" main
+            Write-ColoredOutput "Tag $VscodiumVersion not found. Using master branch..." "WARNING"
+            git checkout -b "build-$VscodiumVersion" master 2>$null | Out-Null
         }
+        
+        # Restore error handling
+        $ErrorActionPreference = $PreviousErrorAction
         
         Set-Location $RootDir
     } else {
         Write-ColoredOutput "Cloning VSCodium repository..." "INFO"
+        
+        # Temporarily disable strict error handling for git commands
+        $PreviousErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        
         git clone --depth 1 --branch $VscodiumVersion $VscodiumRepo $VscodiumDir 2>$null
         
-        # If tag-based clone fails, clone main and checkout tag
+        # If tag-based clone fails, clone master and checkout tag
         if ($LASTEXITCODE -ne 0) {
-            Write-ColoredOutput "Tag-based clone failed. Cloning main branch..." "WARNING"
+            Write-ColoredOutput "Tag-based clone failed. Cloning master branch..." "WARNING"
             Remove-Item -Path $VscodiumDir -Recurse -Force -ErrorAction SilentlyContinue
-            git clone $VscodiumRepo $VscodiumDir
+            git clone $VscodiumRepo $VscodiumDir 2>$null
             
             Set-Location $VscodiumDir
-            git fetch --all --tags
+            git fetch --all --tags 2>$null
             
             # Check if the tag exists
             $TagExists = git tag -l $VscodiumVersion
             if ($TagExists) {
                 Write-ColoredOutput "Checking out tag $VscodiumVersion..." "INFO"
-                git checkout -b "build-$VscodiumVersion" $VscodiumVersion
+                git checkout -b "build-$VscodiumVersion" $VscodiumVersion 2>$null
             } else {
-                Write-ColoredOutput "Tag $VscodiumVersion not found. Using main branch..." "WARNING"
-                git checkout -b "build-$VscodiumVersion" main
+                Write-ColoredOutput "Tag $VscodiumVersion not found. Using master branch..." "WARNING"
+                git checkout -b "build-$VscodiumVersion" master 2>$null
             }
             
             Set-Location $RootDir
         }
+        
+        # Restore error handling
+        $ErrorActionPreference = $PreviousErrorAction
     }
     
     Write-ColoredOutput "VSCodium repository cloned/updated successfully" "SUCCESS"
@@ -297,27 +337,54 @@ function Prepare-VscodiumBuild {
         exit 1
     }
     
-    $PackageJsonPath = Join-Path $VscodiumDir "package.json"
-    if (-not (Test-Path $PackageJsonPath)) {
-        Write-ColoredOutput "package.json not found in VSCodium directory. This indicates a clone issue." "ERROR"
-        Write-ColoredOutput "Attempting to re-clone VSCodium repository..." "INFO"
+    # VSCodium requires preparation of the VS Code source first
+    Write-ColoredOutput "Preparing VS Code source..." "INFO"
+    
+    # Temporarily disable strict error handling for preparation scripts
+    $PreviousErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    
+    # Run VSCodium's preparation script to download and prepare VS Code source
+    if (Test-Path (Join-Path $VscodiumDir "prepare_vscode.sh")) {
+        # Use Git Bash to run the preparation script
+        $GitBashPaths = @(
+            "C:\Program Files\Git\bin\bash.exe",
+            "C:\Program Files (x86)\Git\bin\bash.exe"
+        )
         
-        # Remove the problematic directory and re-clone
-        Remove-Item -Path $VscodiumDir -Recurse -Force -ErrorAction SilentlyContinue
-        Clone-Vscodium
+        $GitBashFound = $false
+        foreach ($GitBashPath in $GitBashPaths) {
+            if (Test-Path $GitBashPath) {
+                Write-ColoredOutput "Using Git Bash to prepare VS Code source..." "INFO"
+                & $GitBashPath -c "cd '$($VscodiumDir -replace '\\', '/')' && ./prepare_vscode.sh"
+                $GitBashFound = $true
+                break
+            }
+        }
         
-        # Check again
-        if (-not (Test-Path $PackageJsonPath)) {
-            Write-ColoredOutput "Still no package.json found. VSCodium clone failed." "ERROR"
+        if (-not $GitBashFound) {
+            Write-ColoredOutput "Git Bash not found. Cannot prepare VS Code source." "ERROR"
             exit 1
         }
     }
     
-    Set-Location $VscodiumDir
+    # Restore error handling
+    $ErrorActionPreference = $PreviousErrorAction
     
-    # Install dependencies
-    Write-ColoredOutput "Installing VSCodium dependencies..." "INFO"
-    yarn install
+    # Now check for package.json in the vscode subdirectory
+    $PackageJsonPath = Join-Path $VscodiumDir "vscode\package.json"
+    if (-not (Test-Path $PackageJsonPath)) {
+        Write-ColoredOutput "VS Code source preparation may have failed. package.json not found at: $PackageJsonPath" "ERROR"
+        Write-ColoredOutput "Trying to continue with VSCodium's build process..." "WARNING"
+    } else {
+        Write-ColoredOutput "VS Code source prepared successfully." "SUCCESS"
+    }
+    
+    # VSCodium uses its own build system, not yarn directly
+    Write-ColoredOutput "Setting up VSCodium build environment..." "INFO"
+    
+    # The actual build will be handled by VSCodium's build scripts
+    Write-ColoredOutput "VSCodium build environment ready." "SUCCESS"
     
     # Copy SPARC IDE configuration
     Write-ColoredOutput "Copying SPARC IDE configuration..." "INFO"
@@ -456,33 +523,47 @@ function Build-SparcIde {
     Set-Location $VscodiumDir
     
     # Verify we have the necessary build scripts
-    $GulpfilePath = Join-Path $VscodiumDir "gulpfile.js"
-    if (-not (Test-Path $GulpfilePath)) {
-        Write-ColoredOutput "gulpfile.js not found. This indicates VSCodium was not cloned properly." "ERROR"
+    $BuildScriptPath = Join-Path $VscodiumDir "build.sh"
+    if (-not (Test-Path $BuildScriptPath)) {
+        Write-ColoredOutput "build.sh not found. This indicates VSCodium was not cloned properly." "ERROR"
         exit 1
     }
     
-    # Build for Windows x64
-    Write-ColoredOutput "Building for Windows x64..." "INFO"
+    # Build for Windows x64 using VSCodium's build system
+    Write-ColoredOutput "Building SPARC IDE for Windows x64 using VSCodium build system..." "INFO"
     
-    # Run the build with error handling
-    $BuildResult = yarn gulp vscode-win32-x64 2>&1
-    $BuildExitCode = $LASTEXITCODE
+    # Temporarily disable strict error handling for build process
+    $PreviousErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    
+    # Use Git Bash to run VSCodium's build script
+    $GitBashPaths = @(
+        "C:\Program Files\Git\bin\bash.exe",
+        "C:\Program Files (x86)\Git\bin\bash.exe"
+    )
+    
+    $GitBashFound = $false
+    foreach ($GitBashPath in $GitBashPaths) {
+        if (Test-Path $GitBashPath) {
+            Write-ColoredOutput "Using Git Bash to run VSCodium build..." "INFO"
+            & $GitBashPath -c "cd '$($VscodiumDir -replace '\\', '/')' && ./build.sh"
+            $BuildExitCode = $LASTEXITCODE
+            $GitBashFound = $true
+            break
+        }
+    }
+    
+    if (-not $GitBashFound) {
+        Write-ColoredOutput "Git Bash not found. Cannot run VSCodium build script." "ERROR"
+        exit 1
+    }
+    
+    # Restore error handling
+    $ErrorActionPreference = $PreviousErrorAction
     
     if ($BuildExitCode -ne 0) {
-        Write-ColoredOutput "Build command failed with exit code: $BuildExitCode" "ERROR"
-        Write-ColoredOutput "Build output: $BuildResult" "ERROR"
-        
-        # Try alternative build approach
-        Write-ColoredOutput "Trying alternative build approach..." "INFO"
-        yarn run gulp vscode-win32-x64
-        $BuildExitCode = $LASTEXITCODE
-        
-        if ($BuildExitCode -ne 0) {
-            Write-ColoredOutput "Alternative build also failed. Checking available gulp tasks..." "ERROR"
-            yarn gulp --tasks
-            exit 1
-        }
+        Write-ColoredOutput "VSCodium build failed with exit code: $BuildExitCode" "ERROR"
+        exit 1
     }
     
     # Check if build was successful - look for multiple possible output directories
