@@ -233,10 +233,15 @@ function Compare-Installers {
                     Write-ColoredOutput "Comparing installers..." "HEADER"
                     Add-ToReport "Comparing installers..." "header"
                     
+                    $MockResultText = if ($MockResult) { 'Yes ✓' } else { 'No ✗' }
+                    $RealResultText = if ($RealResult) { 'Yes ✓' } else { 'No ✗' }
+                    $MockSizeText = if (Test-Path $MockInstallerPath) { [math]::Round((Get-Item $MockInstallerPath).Length / 1MB, 2) } else { 'N/A' }
+                    $RealSizeText = if (Test-Path $RealInstallerPath) { [math]::Round((Get-Item $RealInstallerPath).Length / 1MB, 2) } else { 'N/A' }
+                    
                     Add-ToReport "<table>
 <tr><th>Test</th><th>Mock Installer</th><th>Real Installer</th></tr>
-<tr><td>Valid Windows Executable</td><td>$($MockResult ? 'Yes ✓' : 'No ✗')</td><td>$($RealResult ? 'Yes ✓' : 'No ✗')</td></tr>
-<tr><td>Size</td><td>$(if (Test-Path $MockInstallerPath) { [math]::Round((Get-Item $MockInstallerPath).Length / 1MB, 2) } else { 'N/A' }) MB</td><td>$(if (Test-Path $RealInstallerPath) { [math]::Round((Get-Item $RealInstallerPath).Length / 1MB, 2) } else { 'N/A' }) MB</td></tr>
+<tr><td>Valid Windows Executable</td><td>$MockResultText</td><td>$RealResultText</td></tr>
+<tr><td>Size</td><td>$MockSizeText MB</td><td>$RealSizeText MB</td></tr>
 </table>"
                     
                     if ($MockResult -eq $false -and $RealResult -eq $true) {
