@@ -115,12 +115,12 @@ apply_branding() {
 }
 
 # Download Roo Code
-download_roo_code() {
-    print_header "Downloading Roo Code extension"
+build_roo_code() {
+    print_header "Building custom Roo Code extension for SPARC IDE"
     
-    "$SCRIPT_DIR/download-roo-code.sh"
+    "$SCRIPT_DIR/build-roo-code.sh"
     
-    print_success "Roo Code extension downloaded successfully."
+    print_success "Custom Roo Code extension built successfully."
 }
 
 # Configure UI
@@ -430,7 +430,7 @@ main() {
     make_scripts_executable
     setup_build_environment
     apply_branding
-    download_roo_code
+    build_roo_code
     configure_ui
     # Use our simplified security verification script
     print_header "Verifying security"

@@ -248,4 +248,97 @@ create_test_directory_structure() {
     mkdir -p "$base_dir/extensions"
     
     echo "$base_dir"
+}# Ad
+ditional assert functions for JSON and file properties
+assert_file_executable() {
+    local file="$1"
+    local message="$2"
+    
+    if [ -x "$file" ]; then
+        print_success "PASS: $message"
+        return 0
+    else
+        print_error "FAIL: $message"
+        echo "  File is not executable: $file"
+        return 1
+    fi
+}
+
+assert_file_contains() {
+    local file="$1"
+    local pattern="$2"
+    local message="$3"
+    
+    if [ -f "$file" ] && grep -q "$pattern" "$file"; then
+        print_success "PASS: $message"
+        return 0
+    else
+        print_error "FAIL: $message"
+        echo "  File does not contain pattern: $pattern"
+        echo "  File: $file"
+        return 1
+    fi
+}
+
+assert_json_field_exists() {
+    local json_file="$1"
+    local field_path="$2"
+    local message="$3"
+    
+    if [ ! -f "$json_file" ]; then
+        print_error "FAIL: $message"
+        echo "  JSON file does not exist: $json_file"
+        return 1
+    fi
+    
+    # Check if jq is available
+    if ! command -v jq > /dev/null 2>&1; then
+        print_error "FAIL: $message"
+        echo "  jq is not available for JSON testing"
+        return 1
+    fi
+    
+    if jq -e "$field_path" "$json_file" > /dev/null 2>&1; then
+        print_success "PASS: $message"
+        return 0
+    else
+        print_error "FAIL: $message"
+        echo "  JSON field does not exist: $field_path"
+        echo "  File: $json_file"
+        return 1
+    fi
+}
+
+assert_json_field_contains() {
+    local json_file="$1"
+    local field_path="$2"
+    local expected_value="$3"
+    local message="$4"
+    
+    if [ ! -f "$json_file" ]; then
+        print_error "FAIL: $message"
+        echo "  JSON file does not exist: $json_file"
+        return 1
+    fi
+    
+    # Check if jq is available
+    if ! command -v jq > /dev/null 2>&1; then
+        print_error "FAIL: $message"
+        echo "  jq is not available for JSON testing"
+        return 1
+    fi
+    
+    local actual_value=$(jq -r "$field_path" "$json_file" 2>/dev/null)
+    
+    if [[ "$actual_value" == *"$expected_value"* ]]; then
+        print_success "PASS: $message"
+        return 0
+    else
+        print_error "FAIL: $message"
+        echo "  JSON field does not contain expected value"
+        echo "  Field: $field_path"
+        echo "  Expected to contain: $expected_value"
+        echo "  Actual value: $actual_value"
+        return 1
+    fi
 }

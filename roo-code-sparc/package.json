@@ -1,0 +1,247 @@
+{
+    "name": "roo-code-sparc",
+    "displayName": "Roo Code for SPARC IDE",
+    "description": "AI-powered coding assistant integrated with SPARC methodology for structured software development",
+    "version": "1.0.0",
+    "publisher": "sparc-ide",
+    "author": "SPARC IDE Team",
+    "license": "MIT",
+    "homepage": "https://github.com/sparc-ide/sparc-ide",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/sparc-ide/sparc-ide.git",
+        "directory": "roo-code-sparc"
+    },
+    "bugs": {
+        "url": "https://github.com/sparc-ide/sparc-ide/issues"
+    },
+    "engines": {
+        "vscode": "^1.102.0"
+    },
+    "categories": [
+        "Other",
+        "Machine Learning"
+    ],
+    "keywords": [
+        "ai",
+        "assistant",
+        "sparc",
+        "roo-code",
+        "openrouter",
+        "claude",
+        "gpt"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "configuration": {
+            "title": "Roo Code SPARC",
+            "properties": {
+                "rooCode.apiKey.openrouter": {
+                    "type": "string",
+                    "default": "",
+                    "description": "OpenRouter API Key for AI models",
+                    "order": 1
+                },
+                "rooCode.apiKey.claude": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Anthropic Claude API Key",
+                    "order": 2
+                },
+                "rooCode.apiKey.openai": {
+                    "type": "string",
+                    "default": "",
+                    "description": "OpenAI GPT-4 API Key",
+                    "order": 3
+                },
+                "rooCode.apiKey.gemini": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Google Gemini API Key",
+                    "order": 4
+                },
+                "rooCode.defaultProvider": {
+                    "type": "string",
+                    "enum": [
+                        "openrouter",
+                        "claude",
+                        "openai",
+                        "gemini"
+                    ],
+                    "default": "openrouter",
+                    "description": "Default AI provider to use",
+                    "order": 5
+                },
+                "rooCode.defaultModel": {
+                    "type": "string",
+                    "default": "anthropic/claude-3-sonnet-20240229",
+                    "description": "Default AI model to use",
+                    "order": 6
+                },
+                "rooCode.sparcIntegration": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable SPARC methodology integration",
+                    "order": 7
+                },
+                "rooCode.autoSuggest": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable automatic code suggestions",
+                    "order": 8
+                }
+            }
+        },
+        "commands": [
+            {
+                "command": "rooCode.chat",
+                "title": "Roo Code: Open Chat",
+                "icon": "$(comment-discussion)"
+            },
+            {
+                "command": "rooCode.explain",
+                "title": "Roo Code: Explain Code",
+                "icon": "$(question)"
+            },
+            {
+                "command": "rooCode.generate",
+                "title": "Roo Code: Generate Code",
+                "icon": "$(code)"
+            },
+            {
+                "command": "rooCode.refactor",
+                "title": "Roo Code: Refactor Code",
+                "icon": "$(tools)"
+            },
+            {
+                "command": "rooCode.generateTests",
+                "title": "Roo Code: Generate Tests",
+                "icon": "$(beaker)"
+            },
+            {
+                "command": "rooCode.sparcAssist",
+                "title": "Roo Code: SPARC Phase Assistant",
+                "icon": "$(rocket)"
+            },
+            {
+                "command": "rooCode.switchModel",
+                "title": "Roo Code: Switch AI Model",
+                "icon": "$(settings-gear)"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "rooCode.chat",
+                "key": "ctrl+shift+a",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "rooCode.explain",
+                "key": "ctrl+shift+e",
+                "when": "editorHasSelection"
+            },
+            {
+                "command": "rooCode.generate",
+                "key": "ctrl+shift+i",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "rooCode.refactor",
+                "key": "ctrl+shift+r",
+                "when": "editorHasSelection"
+            },
+            {
+                "command": "rooCode.generateTests",
+                "key": "ctrl+shift+t",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "rooCode.sparcAssist",
+                "key": "ctrl+shift+s",
+                "when": "editorTextFocus"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "submenu": "rooCode.submenu",
+                    "group": "1_modification@1"
+                }
+            ],
+            "rooCode.submenu": [
+                {
+                    "command": "rooCode.explain",
+                    "when": "editorHasSelection",
+                    "group": "1_explain"
+                },
+                {
+                    "command": "rooCode.generate",
+                    "group": "2_generate"
+                },
+                {
+                    "command": "rooCode.refactor",
+                    "when": "editorHasSelection",
+                    "group": "2_generate"
+                },
+                {
+                    "command": "rooCode.generateTests",
+                    "group": "3_test"
+                },
+                {
+                    "command": "rooCode.sparcAssist",
+                    "group": "4_sparc"
+                }
+            ]
+        },
+        "submenus": [
+            {
+                "id": "rooCode.submenu",
+                "label": "Roo Code AI"
+            }
+        ],
+        "viewsContainers": {
+            "panel": [
+                {
+                    "id": "rooCodePanel",
+                    "title": "Roo Code",
+                    "icon": "$(robot)"
+                }
+            ]
+        },
+        "views": {
+            "rooCodePanel": [
+                {
+                    "id": "rooCodeChat",
+                    "name": "AI Chat",
+                    "type": "webview"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "test": "node ./out/test/runTest.js",
+        "package": "vsce package"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.102.0",
+        "@types/node": "20.x",
+        "@typescript-eslint/eslint-plugin": "^7.14.1",
+        "@typescript-eslint/parser": "^7.11.0",
+        "eslint": "^8.57.0",
+        "typescript": "^5.4.5",
+        "@vscode/test-cli": "^0.0.9",
+        "@vscode/test-electron": "^2.4.0",
+        "vsce": "^2.15.0"
+    },
+    "dependencies": {
+        "node-fetch": "^3.3.2"
+    }
+}
